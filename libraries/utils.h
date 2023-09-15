@@ -40,6 +40,7 @@ int hashfunc(int yvalue) {
     return (yvalue % __OCCURENCE_SIZE);
 }
 
+// inserts the occuring yvalue to the modified hashmap
 void insert_occurence(int yvalue) {
     int index = hashfunc(yvalue);
     if (__OCCURENCE_LIST[index] == NULL) {
@@ -67,6 +68,24 @@ void insert_occurence(int yvalue) {
     hld->next->yvalue = yvalue;
     hld->next->count = 1;
     hld->next->next = NULL;
+}
+
+// returns the yvalue of the highest occurence
+int get_highest_occuring_yvalue() {
+    struct occurence_pair* tmp = __OCCURENCE_LIST;
+    struct occurence_pair* highest = NULL;
+    int highest = 0;
+
+    for (int i = 0; i < __OCCURENCE_SIZE; i++) {
+        struct occurence_pair* current = __OCCURENCE_LIST[i];
+        while (current != NULL) {
+            if (current->count >= highest)
+                highest = current;
+        }
+    }
+
+    if (highest == NULL) return -1;
+    return highest->yvalue;
 }
 
 //////////////////////////////////////////////////
@@ -136,6 +155,15 @@ void insert_knn_tuple(int yvalue, float distance) {
     }
 }
 
+// resets the knn tuple datastructure
+void reset_knntuple() {
+    while (ROOT != NULL) {
+        struct knn_tuple* tmp = ROOT;
+        ROOT = ROOT->next;
+
+        free(tmp);
+    }
+}
 
 // returns the k least distance from the point
 int* getknn_yvalues(int k) {
@@ -148,12 +176,10 @@ int* getknn_yvalues(int k) {
     return yvalues;
 }
 
-// for getting the most max indices in a tuple list
-int getmax_id(int* yvalue_list, int arrsize, int ksize) {
-    int* maxarr = (int*)malloc(ksize * sizeof(int));
-
-    for (int i = 0, j = 0; i < arrsize; i++) {
-    }
+// returns the majority yvalue from the list of getknn_yvalues
+int get_majority_yvalue(int* yvalue_list, int ksize) {
+    for (int i = 0; i < ksize; i++) insert_occurence(yvalue_list[i]);
+    return get_highest_occuring_yvalue();
 }
 
 ///////////////////////////
