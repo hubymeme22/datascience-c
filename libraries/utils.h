@@ -37,12 +37,14 @@ void init_occurence_pair(int osize) {
 
 // for basic calculation of hash values
 int hashfunc(int yvalue) {
+    if (__OCCURENCE_SIZE == 0 || __OCCURENCE_LIST == NULL) init_occurence_pair(32);
     return (yvalue % __OCCURENCE_SIZE);
 }
 
 // inserts the occuring yvalue to the modified hashmap
 void insert_occurence(int yvalue) {
     int index = hashfunc(yvalue);
+
     if (__OCCURENCE_LIST[index] == NULL) {
         __OCCURENCE_LIST[index] = (struct occurence_pair*)malloc(sizeof(struct occurence_pair));
         __OCCURENCE_LIST[index]->yvalue = yvalue;
@@ -72,15 +74,19 @@ void insert_occurence(int yvalue) {
 
 // returns the yvalue of the highest occurence
 int get_highest_occuring_yvalue() {
-    struct occurence_pair* tmp = __OCCURENCE_LIST;
+    struct occurence_pair** tmp = __OCCURENCE_LIST;
     struct occurence_pair* highest = NULL;
-    int highest = 0;
+    int current_highest = 0;
 
     for (int i = 0; i < __OCCURENCE_SIZE; i++) {
         struct occurence_pair* current = __OCCURENCE_LIST[i];
         while (current != NULL) {
-            if (current->count >= highest)
+            if (current->count >= current_highest) {
+                current_highest = current->count;
                 highest = current;
+            }
+
+            current = current->next;
         }
     }
 
@@ -182,12 +188,78 @@ int get_majority_yvalue(int* yvalue_list, int ksize) {
     return get_highest_occuring_yvalue();
 }
 
+//////////////////////////////////////
+//  Parsers for easier conversions  //
+//////////////////////////////////////
+struct label_stack {
+    const char* label;
+    struct label_stack* next;
+    struct label_stack* prev;
+};
+
+struct label_stack* __STACK_END = NULL;
+struct label_stack* __STACK_BEG = NULL;
+int __STACK_SIZE = 0;
+
+void stack_label(const char* label) {
+    __STACK_SIZE++;
+    if (__STACK_BEG == NULL) {
+        __STACK_BEG = (struct label_stack*)malloc(sizeof(struct label_stack));
+        __STACK_END = __STACK_BEG;
+
+        __STACK_BEG->label = label;
+        __STACK_BEG->next = NULL;
+        __STACK_BEG->prev = NULL;
+        return;
+    }
+
+    // hold the current end, to assign new __STACK_END
+    struct label_stack* previous_end = __STACK_END;
+    __STACK_END = (struct label_stack*)malloc(sizeof(struct label_stack));
+
+    // connection between the last nodes
+    previous_end->next = __STACK_END;
+    __STACK_END->prev = previous_end;
+    __STACK_END->next = NULL;
+    __STACK_END->label = label;
+}
+
+const char* label_pop() {
+    if (__STACK_END == NULL) return NULL;
+
+    struct label_stack* tmp = __STACK_END;
+    const char* value = tmp->label;
+
+    __STACK_END = __STACK_END->prev;
+    __STACK_SIZE--;
+
+    return value;
+}
+
+const char** get_stacked_labels() {
+    const char** stacked_labels = (const char**)malloc(__STACK_SIZE * sizeof(const char*));
+    int index = 0;
+
+    while (1) {
+        const char* current = label_pop();
+        if (current == NULL) break;
+        stacked_labels[index++] = current;
+    }
+
+    return stacked_labels;
+}
+
 ///////////////////////////
 //  Debugging functions  //
 ///////////////////////////
 void print_all_tuples() {
     for (struct knn_tuple* tmp_root = ROOT; tmp_root != NULL; tmp_root = tmp_root->next)
         printf("%d->", tmp_root->yvalue);
+}
+
+void print_all_stack() {
+    for (struct label_stack* tmp_root = __STACK_END; tmp_root != NULL; tmp_root = tmp_root->prev)
+        printf("%s->", tmp_root->label);
 }
 
 float** generate_random_dataset(int rowsize, int colsize, float max_num) {
