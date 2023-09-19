@@ -4,6 +4,9 @@
     Written: September 12, 2023
 */
 
+#ifndef KNN_H
+#define KNN_H
+
 #include <stdlib.h>
 #include "utils.h"
 
@@ -54,3 +57,5 @@ const char* knn_predict_with_labels(float* inputdata) {
 
     return __LABELS[index];
 }
+
+#endif

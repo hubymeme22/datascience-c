@@ -1,3 +1,6 @@
+#ifndef UTILS_H
+#define UTILS_H
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
@@ -104,11 +107,6 @@ struct knn_tuple {
     struct knn_tuple* next;
 };
 
-struct item_count {
-    int count;
-    int item;
-};
-
 struct knn_tuple* ROOT = NULL;
 struct knn_tuple* TAIL = NULL;
 
@@ -169,6 +167,9 @@ void reset_knntuple() {
 
         free(tmp);
     }
+
+    ROOT = NULL;
+    TAIL = NULL;
 }
 
 // returns the k least distance from the point
@@ -233,6 +234,7 @@ const char* label_pop() {
     __STACK_END = __STACK_END->prev;
     __STACK_SIZE--;
 
+    free(tmp);
     return value;
 }
 
@@ -275,3 +277,5 @@ float** generate_random_dataset(int rowsize, int colsize, float max_num) {
 
     return returningvalue;
 }
+
+#endif
